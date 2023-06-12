@@ -1,10 +1,10 @@
 WeaponData
 {
 	// General
-	"printname"   									"#WPN_STIM"
-	"shortprintname"								"#WPN_STIM"
-	"description" 									"#WPN_STIM_DESC"
-	"longdesc"										"#WPN_STIM_LONGDESC"
+	"printname"   									"Inversion"
+	"shortprintname"								"Inversion"
+	"description" 									"Your entire magazine, shot forward in time for you to invert at will."
+	"longdesc"										"Your entire magazine, shot forward in time for you to invert at will."
 
 	"menu_icon"										"rui/titan_loadout/ordnance/concussive_shot_short"
 	"hud_icon"										"rui/titan_loadout/ordnance/concussive_shot_short"

@@ -1,10 +1,10 @@
 WeaponData
 {
 	// General
-	"printname"   									"#WPN_STIM"
-	"shortprintname"								"#WPN_STIM"
-	"description" 									"#WPN_STIM_DESC"
-	"longdesc"										"#WPN_STIM_LONGDESC"
+	"printname"   									"Invert Bullets"
+	"shortprintname"								"Invert Bullets"
+	"description" 									"Inverts Shot Bullets, bringing them forward in time towards your magazine."
+	"longdesc"										"Inverts Shot Bullets, bringing them forward in time towards your magazine."
 
 	"menu_icon"										"rui/titan_loadout/tactical/titan_tactical_ammo_swap"
 	"hud_icon"										"rui/titan_loadout/tactical/titan_tactical_ammo_swap"

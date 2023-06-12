@@ -192,13 +192,14 @@ var function OnWeaponPrimaryAttack_ability_inversionend( entity weapon, WeaponPr
 	PlayerUsedOffhand( ownerPlayer, weapon )
 
 #if SERVER
+	ServerToClientStringCommand(ownerPlayer, "fireInversionOnPlayer" + ownerPlayer.GetEncodedEHandle())
 	ownerPlayer.TakeOffhandWeapon(1)
 	ownerPlayer.GiveOffhandWeapon( "mp_ability_inversionstart" , 1)
 	DebugDrawLine( inverseServerSaveStates[ownerPlayer].savedBulletsImpact,  inverseServerSaveStates[ownerPlayer].savedBulletsOrigin, 255, 0, 0, true, 10.0 )
 	DebugDrawSphere( inverseServerSaveStates[ownerPlayer].savedBulletsImpact, 32.0, 255, 128, 0, true, 10.0 )
 	DebugDrawSphere( inverseServerSaveStates[ownerPlayer].savedBulletsOrigin, 32.0, 0, 128, 155, true, 10.0 )
 	inverseServerSaveStates[ownerPlayer].savedWeapon.FireWeaponBullet(inverseServerSaveStates[ownerPlayer].savedBulletsImpact,-inverseServerSaveStates[ownerPlayer].savedBulletOriginImpactAngle, inverseServerSaveStates[ownerPlayer].invertedAmmoCount, damageTypes.bullet  )
-	ServerToClientStringCommand(ownerPlayer, "fireInversionOnPlayer" + ownerPlayer.GetEncodedEHandle())
+
 #if BATTLECHATTER_ENABLED
 	TryPlayWeaponBattleChatterLine( ownerPlayer, weapon )
 #endif //
