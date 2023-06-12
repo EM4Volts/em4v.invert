@@ -1,0 +1,18 @@
+{
+  "Name": "Invert Ability",
+  "Description": "Invert",
+  "Version": "0.0.1",
+  "LoadPriority": 1,
+  "Scripts": [
+    {
+      "Path": "weapons/mp_ability_inversionstart.nut",
+      "RunOn": "( CLIENT || SERVER ) && MP",
+      "ClientCallback": {
+        "Before": "ability_inversion_init"
+      },
+      "ServerCallback": {
+        "Before": "ability_inversion_init"
+      }
+    }
+  ]
+}
