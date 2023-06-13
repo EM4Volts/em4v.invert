@@ -5,14 +5,8 @@ Source code for the BulletInversion Titanfall 2 mod.
 
 still todo:
 
-    add support for different weapon fire types in client fire command
-        same for server
+    nothing, shit sucks and doesnt work because respawn makes dumb decisions. maybe ill get back to it in about 25 years.
 
-    cooldown
-
-    complete playtest
-
-    add reset on death, loadout change, weapon pickup or if needed spawn entity to shoot from by saved name
 
 
 
