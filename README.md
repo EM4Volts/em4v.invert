@@ -12,6 +12,8 @@ still todo:
 
     complete playtest
 
+    add reset on death, loadout change, weapon pickup or if needed spawn entity to shoot from by saved name
+
 
 
 
