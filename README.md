@@ -4,9 +4,13 @@ Source code for the BulletInversion Titanfall 2 mod.
 
 
 still todo:
-    send fire commadn to each client
-    server side is basically done.
 
+    add support for different weapon fire types in client fire command
+        same for server
+
+    cooldown
+
+    complete playtest
 
 
 
