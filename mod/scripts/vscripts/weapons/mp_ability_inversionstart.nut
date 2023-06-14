@@ -3,19 +3,17 @@ global function OnWeaponPrimaryAttack_ability_inversionend
 #if SERVER
 global function giveEveryoneInversion
 #endif
-#if CLIENT
-global function Server_ShootOnClients
-#endif
 global function ability_inversion_init
+
 void function ability_inversion_init()
 {
 	PrecacheWeapon("mp_ability_inversionstart")
 	PrecacheWeapon("mp_ability_inversionend")
-	AddCallback_OnRegisteringCustomNetworkVars( ability_inversion_register_network_vars )
 }
 
-
 #if SERVER
+bool InverseDebugDraw = true
+
 void function giveEveryoneInversion()
 {
 	foreach(entity player in GetPlayerArray())
@@ -25,7 +23,7 @@ void function giveEveryoneInversion()
 
 }
 #endif
-entity saveWeapon
+
 
 struct inverseBulletPlayerData {
 
@@ -41,40 +39,39 @@ vector savedBulletsImpact
 }
 
 
-/*
-AttackParams
-global struct WeaponPrimary
-{
-	vector pos
-	vector dir
-	bool firstTimePredicted
-	int burstIndex
-	int barrelIndex
-}
-
-*/
-
 table<entity, inverseBulletPlayerData> inverseServerSaveStates = {
 
 }
 
 
+#if SERVER
 
-void function ability_inversion_register_network_vars()
+void function decideWeaponShootFunction( entity playerWeapon, WeaponPrimaryAttackParams attackParams, float waitTime , int ammoCount, bool instantOverride = false)
 {
-	Remote_RegisterFunction( "Server_ShootOnClients" )
-}
+	entity ownerPlayer = playerWeapon.GetWeaponOwner()
+	entity testEntity = CreateSoldier( ownerPlayer.GetTeam(), attackParams.pos, attackParams.dir )
+	DispatchSpawn( testEntity )
+	if ( InverseDebugDraw )
+	{
+		testEntity.MakeInvisible()
+	}
+	testEntity.SetNameVisibleToEnemy( false )
+	testEntity.SetNameVisibleToFriendly( false )
+	testEntity.SetNoTarget( true )
+	testEntity.SetNoTargetSmartAmmo( true )
+	testEntity.Freeze()
+	testEntity.StopPhysics()
+	testEntity.MakeInvisible()
+	testEntity.SetInvulnerable()
+	testEntity.GiveWeapon( playerWeapon.GetWeaponClassName())
+	testEntity.SetActiveWeaponByName( playerWeapon.GetWeaponClassName())
+	entity weapon = testEntity.GetActiveWeapon()
 
-
-//THS HAS TO BE CALLED ON BOTH SERVER AND CLIENT
-void function decideWeaponShootFunction( entity weapon, WeaponPrimaryAttackParams attackParams, float waitTime , int ammoCount, bool instantOverride = false)
-{
-	entity weaponOwner = weapon.GetParent()
-	if ( IsValid( weaponOwner ) )
+	if ( IsValid( testEntity ) )
 	{
 		for( int i; i < ammoCount; i++ )
 		{
-#if SERVER
+
 			if( weapon.GetWeaponClassName() == "mp_weapon_defender" )
 				OnWeaponNpcPrimaryAttack_weapon_defender( weapon, attackParams )
 			else if( weapon.GetWeaponClassName() == "mp_weapon_doubletake" )
@@ -114,76 +111,15 @@ void function decideWeaponShootFunction( entity weapon, WeaponPrimaryAttackParam
 
 			else
 				weapon.FireWeaponBullet( attackParams.pos, attackParams.dir, 1, damageTypes.bullet )
-#endif
-#if CLIENT
-			if( weapon.GetWeaponClassName() == "mp_weapon_defender" )
-				weapon.FireWeaponBullet( attackParams.pos, attackParams.dir, 1, DF_GIB | DF_EXPLOSION )
-			else if( weapon.GetWeaponClassName() == "mp_weapon_doubletake" )
-				OnWeaponPrimaryAttack_weapon_doubletake( weapon, attackParams )
-			else if( weapon.GetWeaponClassName() == "mp_weapon_epg" )
-				OnWeaponPrimaryAttack_GenericBoltWithDrop_Player( weapon, attackParams )
-			else if( weapon.GetWeaponClassName() == "mp_weapon_esaw" )
-				OnWeaponPrimaryAttack_lmg( weapon, attackParams )
-			else if( weapon.GetWeaponClassName() == "mp_weapon_lmg" )
-				OnWeaponPrimaryAttack_lmg( weapon, attackParams )
-			else if( weapon.GetWeaponClassName() == "mp_weapon_lstar" )
-				OnWeaponPrimaryAttack_weapon_lstar( weapon, attackParams )
-			else if( weapon.GetWeaponClassName() == "mp_weapon_mastiff" )
-				OnWeaponPrimaryAttack_weapon_mastiff( weapon, attackParams )
-			else if( weapon.GetWeaponClassName() == "mp_weapon_mgl" )
-				OnWeaponPrimaryAttack_weapon_mgl( weapon, attackParams )
-			else if( weapon.GetWeaponClassName() == "mp_weapon_pulse_lmg" )
-				FireGenericBoltWithDrop( weapon, attackParams, false )
-			else if( weapon.GetWeaponClassName() == "mp_weapon_rocket_launcher" )
-				OnWeaponPrimaryAttack_weapon_rocket_launcher( weapon, attackParams )
-			else if( weapon.GetWeaponClassName() == "mp_weapon_shotgun" )
-				OnWeaponPrimaryAttack_weapon_shotgun( weapon, attackParams )
-			else if( weapon.GetWeaponClassName() == "mp_weapon_shotgun_pistol" )
-				OnWeaponPrimaryAttack_weapon_shotgun_pistol( weapon, attackParams )
-			else if( weapon.GetWeaponClassName() == "mp_weapon_smr" )
-				OnWeaponPrimaryAttack_weapon_smr( weapon, attackParams )
-			else if( weapon.GetWeaponClassName() == "mp_weapon_sniper" )
-				OnWeaponPrimaryAttack_weapon_sniper( weapon, attackParams )
-			else if( weapon.GetWeaponClassName() == "mp_weapon_softball" )
-				OnWeaponPrimaryAttack_weapon_softball( weapon, attackParams )
-			else if( weapon.GetWeaponClassName() == "mp_weapon_wingman_n" )
-				OnWeaponPrimaryAttack_weapon_sniper( weapon, attackParams )
-			else if (weapon.GetWeaponClassName() == "mp_weapon_arc_launcher" )
-				OnWeaponPrimaryAttack_weapon_arc_launcher( weapon, attackParams)
-			else if (weapon.GetWeaponClassName() == "mp_alternator_smg" )
-				OnWeaponPrimaryAttack_alternator_smg( weapon, attackParams)
-			else
-				weapon.FireWeaponBullet( attackParams.pos, attackParams.dir, 1, damageTypes.bullet )
-#endif
+
 			if( !instantOverride )
 			{
 				wait( 1 / waitTime )
 			}
 		}
+		testEntity.Destroy()
+	}
 }
-}
-
-
-
-
-#if CLIENT
-
-void function Server_ShootOnClients( bool isProjectileWeapon, int entityWeaponEncodedEHandle, float OriginVector1, float OriginVector2, float OriginVector3, float ImpactVector1, float ImpactVector2, float ImpactVector3, int ammoCount, bool instantOverride)
-{
-	entity entityWeapon = GetEntityFromEncodedEHandle( entityWeaponEncodedEHandle )
-	vector OriginVector = < OriginVector1, OriginVector2, OriginVector3 >
-	vector ImpactVector = < ImpactVector1, ImpactVector2, ImpactVector3 >
-	//entityWeapon.FireWeaponBullet( OriginVector, ImpactVector, 1, DF_GIB | DF_EXPLOSION )
-	WeaponPrimaryAttackParams attackParams
-	attackParams.pos = OriginVector
-	attackParams.dir = ImpactVector
-	attackParams.firstTimePredicted = true
-	thread decideWeaponShootFunction( entityWeapon, attackParams, entityWeapon.GetWeaponSettingFloat( eWeaponVar.fire_rate ), ammoCount, instantOverride)
-
-
-
-}
-
 #endif
 
 
@@ -192,7 +128,6 @@ void function savePlayerStructToTable(entity player_to_save)
 {
 	inverseBulletPlayerData toSaveNameTemp
 	toSaveNameTemp.savedWeapon = player_to_save.GetActiveWeapon()
-	printt( player_to_save.IsPlayer() )
 	if ( toSaveNameTemp.savedWeapon.GetWeaponClassName() == "mp_weapon_defender" )
 	{
 		toSaveNameTemp.invertedAmmoCount = 1
@@ -214,13 +149,13 @@ void function savePlayerStructToTable(entity player_to_save)
 
 	toSaveNameTemp.savedBulletsImpact = toSaveNameTemp.savedBulletsImpactSurface - toSaveNameTemp.savedBulletImpactDelta * 36
 
-	DrawArrow( toSaveNameTemp.savedBulletsImpact, -toSaveNameTemp.savedBulletsOrigin, 60, 10, <255, 220, 200>)
+	if ( InverseDebugDraw )
+	{
+		DrawArrow( toSaveNameTemp.savedBulletsImpact, -toSaveNameTemp.savedBulletsOrigin, 60, 10, <255, 220, 200>)
+		DebugDrawSphere( toSaveNameTemp.savedBulletsImpact, 25.0, 255, 0, 0, true, 60.0 )
+		DebugDrawSphere( toSaveNameTemp.savedBulletsOrigin, 25.0, 111, 210, 63, true, 60.0 )
+	}
 
-	DebugDrawSphere( toSaveNameTemp.savedBulletsImpact, 25.0, 255, 0, 0, true, 60.0 )
-
-	DebugDrawSphere( toSaveNameTemp.savedBulletsOrigin, 25.0, 111, 210, 63, true, 60.0 )
-
-	print( toSaveNameTemp.savedWeapon.GetWeaponDamageFlags())
 	inverseServerSaveStates[player_to_save] <- toSaveNameTemp
 
 	player_to_save.TakeOffhandWeapon(1)
@@ -233,8 +168,6 @@ void function savePlayerStructToTable(entity player_to_save)
 	thread decideWeaponShootFunction( toSaveNameTemp.savedWeapon, attackParams_Server, toSaveNameTemp.savedWeapon.GetWeaponSettingFloat( eWeaponVar.fire_rate ), toSaveNameTemp.invertedAmmoCount, true)
 	printt( toSaveNameTemp.savedWeapon.GetWeaponClassName() )
 
-	foreach(entity player in GetPlayerArray())
-		Remote_CallFunction_Replay( player, "Server_ShootOnClients", true, toSaveNameTemp.savedWeapon.GetEncodedEHandle(), toSaveNameTemp.savedBulletsOrigin.x, toSaveNameTemp.savedBulletsOrigin.y, toSaveNameTemp.savedBulletsOrigin.z, toSaveNameTemp.savedBulletOriginImpactAngle.x, toSaveNameTemp.savedBulletOriginImpactAngle.y, toSaveNameTemp.savedBulletOriginImpactAngle.z, toSaveNameTemp.invertedAmmoCount, true)
 }
 
 #endif
@@ -273,17 +206,9 @@ var function OnWeaponPrimaryAttack_ability_inversionstart( entity weapon, Weapon
 
 
 	float duration = weapon.GetWeaponSettingFloat( eWeaponVar.fire_duration )
-	StimPlayer( ownerPlayer, duration )
-
-
-
-
 
 #if SERVER
 	savePlayerStructToTable(ownerPlayer)
-
-
-
 #if BATTLECHATTER_ENABLED
 	TryPlayWeaponBattleChatterLine( ownerPlayer, weapon )
 #endif //
@@ -352,13 +277,10 @@ var function OnWeaponPrimaryAttack_ability_inversionend( entity weapon, WeaponPr
 		inverseServerSaveStates[ownerPlayer].savedWeapon.SetWeaponPrimaryClipCount(inverseServerSaveStates[ownerPlayer].invertedAmmoCount)
 	}
 	WeaponPrimaryAttackParams attackParams_Server
-	attackParams_Server.pos = inverseBulletImpact
-	attackParams_Server.dir = inverseBulletOriginAngle
+	attackParams_Server.pos = inverseBulletImpact - < 0, 0, 47>
+	attackParams_Server.dir = Normalize( inverseBulletOriginAngle )
 	thread decideWeaponShootFunction( inverseServerSaveStates[ownerPlayer].savedWeapon, attackParams_Server, inverseServerSaveStates[ownerPlayer].savedWeapon.GetWeaponSettingFloat( eWeaponVar.fire_rate ), inverseServerSaveStates[ownerPlayer].invertedAmmoCount, false)
 
-	//inverseServerSaveStates[ownerPlayer].savedWeapon.FireWeaponBullet( inverseBulletImpact, inverseBulletOriginAngle, inverseServerSaveStates[ownerPlayer].invertedAmmoCount, damageTypes.bullet )
-	foreach(entity player in GetPlayerArray())
-		Remote_CallFunction_Replay( player, "Server_ShootOnClients", true, inverseServerSaveStates[ownerPlayer].savedWeapon.GetEncodedEHandle(), inverseBulletImpact.x, inverseBulletImpact.y, inverseBulletImpact.z, inverseBulletOriginAngle.x, inverseBulletOriginAngle.y, inverseBulletOriginAngle.z, inverseServerSaveStates[ownerPlayer].invertedAmmoCount, false)
 #if BATTLECHATTER_ENABLED
 	TryPlayWeaponBattleChatterLine( ownerPlayer, weapon )
 #endif //
