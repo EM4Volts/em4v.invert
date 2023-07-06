@@ -9,10 +9,28 @@ void function ability_inversion_init()
 {
 	PrecacheWeapon("mp_ability_inversionstart")
 	PrecacheWeapon("mp_ability_inversionend")
+
+/*
+#if SERVER
+	AddCallback_OnNPCKilled( abilityInversionOnPlayerKilled )
+#endif
+*/
 }
 
+/*
 #if SERVER
-bool InverseDebugDraw = true
+void function abilityInversionOnPlayerKilled( entity victim, entity attacker, var damageInfo )
+{
+	printt( "player killed" )
+	printt( victim )
+	printt( attacker.GetParent() )
+	printt( damageInfo )
+}
+#endif
+*/
+
+#if SERVER
+bool InverseDebugDraw = false
 
 void function giveEveryoneInversion()
 {
@@ -44,30 +62,32 @@ table<entity, inverseBulletPlayerData> inverseServerSaveStates = {
 }
 
 
+
 #if SERVER
 
 void function decideWeaponShootFunction( entity playerWeapon, WeaponPrimaryAttackParams attackParams, float waitTime , int ammoCount, bool instantOverride = false)
 {
 	entity ownerPlayer = playerWeapon.GetWeaponOwner()
-	entity testEntity = CreateSoldier( ownerPlayer.GetTeam(), attackParams.pos, attackParams.dir )
-	DispatchSpawn( testEntity )
+	entity inversionBulletGrunt = CreateSoldier( ownerPlayer.GetTeam(), attackParams.pos, attackParams.dir )
+	DispatchSpawn( inversionBulletGrunt )
 	if ( InverseDebugDraw )
 	{
-		testEntity.MakeInvisible()
+		inversionBulletGrunt.MakeInvisible()
 	}
-	testEntity.SetNameVisibleToEnemy( false )
-	testEntity.SetNameVisibleToFriendly( false )
-	testEntity.SetNoTarget( true )
-	testEntity.SetNoTargetSmartAmmo( true )
-	testEntity.Freeze()
-	testEntity.StopPhysics()
-	testEntity.MakeInvisible()
-	testEntity.SetInvulnerable()
-	testEntity.GiveWeapon( playerWeapon.GetWeaponClassName())
-	testEntity.SetActiveWeaponByName( playerWeapon.GetWeaponClassName())
-	entity weapon = testEntity.GetActiveWeapon()
+	inversionBulletGrunt.SetNameVisibleToEnemy( false )
+	inversionBulletGrunt.SetNameVisibleToFriendly( false )
+	inversionBulletGrunt.SetNoTarget( true )
+	inversionBulletGrunt.SetNoTargetSmartAmmo( true )
+	inversionBulletGrunt.Freeze()
+	inversionBulletGrunt.StopPhysics()
+	inversionBulletGrunt.MakeInvisible()
+	inversionBulletGrunt.SetInvulnerable()
+	inversionBulletGrunt.GiveWeapon( playerWeapon.GetWeaponClassName())
+	inversionBulletGrunt.SetActiveWeaponByName( playerWeapon.GetWeaponClassName())
+	entity weapon = inversionBulletGrunt.GetActiveWeapon()
 
-	if ( IsValid( testEntity ) )
+
+	if ( IsValid( inversionBulletGrunt ) )
 	{
 		for( int i; i < ammoCount; i++ )
 		{
@@ -117,7 +137,7 @@ void function decideWeaponShootFunction( entity playerWeapon, WeaponPrimaryAttac
 				wait( 1 / waitTime )
 			}
 		}
-		testEntity.Destroy()
+		inversionBulletGrunt.Destroy()
 	}
 }
 #endif
@@ -240,8 +260,12 @@ var function OnWeaponPrimaryAttack_ability_inversionstart( entity weapon, Weapon
 
 */
 
-
-
+/*
+void function OnPlayerKilled_DeathNotify( entity player, entity attacker, var damageInfo )
+{
+	EmitSoundOnEntity( player, "Player_Death_Begin" )
+}
+*/
 
 var function OnWeaponPrimaryAttack_ability_inversionend( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
